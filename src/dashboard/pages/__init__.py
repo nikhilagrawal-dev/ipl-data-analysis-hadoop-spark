@@ -1,0 +1,3 @@
+"""
+IPL Analytics Dashboard Pages.
+"""

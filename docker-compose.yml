@@ -1,0 +1,161 @@
+services:
+  # =========================================================================
+  # Hadoop HDFS NameNode
+  # =========================================================================
+  namenode:
+    image: apache/hadoop:3.3.6
+    platform: linux/amd64
+    container_name: ipl-hdfs-namenode
+    hostname: namenode
+    entrypoint: ["/bin/bash", "/docker-entrypoint.sh"]
+    environment:
+      - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
+      - HADOOP_HOME=/opt/hadoop
+    volumes:
+      - ./docker/namenode-entrypoint.sh:/docker-entrypoint.sh:ro
+      - ./config/hadoop/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml:ro
+      - ./config/hadoop/hdfs-site.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml:ro
+      - hdfs_namenode_data:/data/dfs/name
+      - ./data:/opt/project_data:ro
+    ports:
+      - "9870:9870" # HDFS NameNode Web UI
+      - "9000:9000" # HDFS RPC NameNode endpoint
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9870/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - ipl-network
+
+  # =========================================================================
+  # Hadoop HDFS DataNode
+  # =========================================================================
+  datanode:
+    image: apache/hadoop:3.3.6
+    platform: linux/amd64
+    container_name: ipl-hdfs-datanode
+    hostname: datanode
+    entrypoint: ["/bin/bash", "/docker-entrypoint.sh"]
+    environment:
+      - WAITFOR=namenode:9000
+      - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
+      - HADOOP_HOME=/opt/hadoop
+    volumes:
+      - ./docker/datanode-entrypoint.sh:/docker-entrypoint.sh:ro
+      - ./config/hadoop/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml:ro
+      - ./config/hadoop/hdfs-site.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml:ro
+      - hdfs_datanode_data:/data/dfs/data
+    ports:
+      - "9864:9864" # HDFS DataNode Web UI
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9864/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    depends_on:
+      namenode:
+        condition: service_healthy
+    networks:
+      - ipl-network
+
+  # =========================================================================
+  # Apache Spark Master (Native ARM64 / Apple Silicon)
+  # =========================================================================
+  spark-master:
+    image: apache/spark:latest
+    container_name: ipl-spark-master
+    hostname: spark-master
+    command:
+      - /opt/spark/bin/spark-class
+      - org.apache.spark.deploy.master.Master
+      - --host
+      - spark-master
+      - --port
+      - "7077"
+      - --webui-port
+      - "8080"
+    environment:
+      - SPARK_NO_DAEMONIZE=true
+      - HADOOP_CONF_DIR=/opt/spark/conf/hadoop
+      - PYSPARK_PYTHON=/usr/bin/python3
+      - PYSPARK_DRIVER_PYTHON=/usr/bin/python3
+      - PYTHONPATH=/opt/spark/apps
+    volumes:
+      - ./config/spark/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf:ro
+      - ./config/hadoop/core-site.xml:/opt/spark/conf/hadoop/core-site.xml:ro
+      - ./config/hadoop/hdfs-site.xml:/opt/spark/conf/hadoop/hdfs-site.xml:ro
+      - ./src:/opt/spark/apps/src:ro
+      - ./tests:/opt/spark/apps/tests:ro
+      - ./data:/opt/spark/apps/data:ro
+    ports:
+      - "8080:8080" # Spark Master Web UI
+      - "7077:7077" # Spark Master RPC
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    depends_on:
+      namenode:
+        condition: service_healthy
+      datanode:
+        condition: service_healthy
+    networks:
+      - ipl-network
+
+  # =========================================================================
+  # Apache Spark Worker
+  # =========================================================================
+  spark-worker:
+    image: apache/spark:latest
+    container_name: ipl-spark-worker
+    hostname: spark-worker
+    command:
+      - /opt/spark/bin/spark-class
+      - org.apache.spark.deploy.worker.Worker
+      - spark://spark-master:7077
+      - --webui-port
+      - "8081"
+    environment:
+      - SPARK_NO_DAEMONIZE=true
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2g
+      - HADOOP_CONF_DIR=/opt/spark/conf/hadoop
+      - PYSPARK_PYTHON=/usr/bin/python3
+      - PYSPARK_DRIVER_PYTHON=/usr/bin/python3
+      - PYTHONPATH=/opt/spark/apps
+    volumes:
+      - ./config/spark/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf:ro
+      - ./config/hadoop/core-site.xml:/opt/spark/conf/hadoop/core-site.xml:ro
+      - ./config/hadoop/hdfs-site.xml:/opt/spark/conf/hadoop/hdfs-site.xml:ro
+      - ./src:/opt/spark/apps/src:ro
+      - ./tests:/opt/spark/apps/tests:ro
+      - ./data:/opt/spark/apps/data:ro
+    ports:
+      - "8081:8081" # Spark Worker Web UI
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8081/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    depends_on:
+      spark-master:
+        condition: service_healthy
+    networks:
+      - ipl-network
+
+volumes:
+  hdfs_namenode_data:
+    name: ipl_hdfs_namenode_data
+  hdfs_datanode_data:
+    name: ipl_hdfs_datanode_data
+
+networks:
+  ipl-network:
+    name: ipl-network
+    driver: bridge
