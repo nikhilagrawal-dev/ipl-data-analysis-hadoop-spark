@@ -1,330 +1,517 @@
 """
 Dashboard Styling & Configuration.
-Defines the bright high-contrast sports analytics theme, colors, CSS injection, and Plotly templates.
+Defines the dark broadcast sports tech theme, stadium floodlight colors, custom CSS injection, and Plotly templates.
 """
 
 import streamlit as st
 import plotly.graph_objects as go
 import plotly.io as pio
 
-# Color Palette (High-Contrast IPL Sports Theme)
+# Color Palette (Dark Broadcast Sports Tech Theme)
 THEME_COLORS = {
     # Backgrounds
-    "bg_main": "#F5F7FB",           # Light grey main dashboard canvas
-    "bg_card": "#FFFFFF",           # Pure white container/card
-    "sidebar_bg": "#102A50",        # Deep navy sidebar
-    "sidebar_card": "#163766",      # Sidebar card container
+    "bg_main": "#070B14",           # Pitch black / deep stadium midnight
+    "bg_card": "#0E1626",           # Dark navy glass card surface
+    "bg_card_inner": "#131D31",     # Nested card container
+    "sidebar_bg": "#0A0F1D",        # Dark navbar / sidebar base
+    "sidebar_card": "#131D31",
     
     # Typography
-    "text_primary": "#172B4D",      # Dark navy primary text (high contrast)
-    "text_secondary": "#526581",    # Slate blue-grey secondary text
-    "text_light": "#FFFFFF",        # Crisp white text
-    "text_sidebar_muted": "#A0B3D6",# Muted light blue for dark sidebar
+    "text_primary": "#FFFFFF",      # Crisp white headings & values
+    "text_secondary": "#8E9CAE",    # Slate metadata text
+    "text_muted": "#526581",        # Muted subtle labels
+    "text_light": "#FFFFFF",
+    "text_sidebar_muted": "#8E9CAE",
+    "text_cyan": "#00F0FF",         # Neon telemetry label text
     
     # Borders & Dividers
-    "border_color": "#DCE4EF",      # Crisp light border
-    "grid_color": "#E8EEF5",        # Subtle chart gridline
-    "sidebar_border": "#24477D",    # Border inside dark sidebar
+    "border_color": "rgba(255, 255, 255, 0.08)", # Subtle glass border
+    "border_highlight": "rgba(0, 240, 255, 0.3)",
+    "grid_color": "rgba(255, 255, 255, 0.05)",   # Subtle dark chart grid
+    "sidebar_border": "rgba(255, 255, 255, 0.08)",
     
-    # Accents
-    "accent_orange": "#FF6B00",     # IPL brand orange
-    "accent_blue": "#168BEB",       # Primary sports blue
-    "accent_green": "#16A765",      # Positive performance green
-    "accent_purple": "#7747C8",     # Analytical purple
-    "accent_red": "#DC3545",        # Warning / loss red
+    # Sports & Telemetry Accents
+    "accent_orange": "#FF6B00",     # IPL Power Orange
+    "accent_orange_hover": "#FF8533",
+    "accent_cyan": "#00F0FF",       # Neon telemetry cyan
+    "accent_green": "#00E676",      # Victory green
+    "accent_red": "#FF3366",        # Dismissal / loss crimson
+    "accent_purple": "#8B5CF6",     # Strategy purple
+    "accent_yellow": "#FACC15",     # CSK Gold
+    "accent_blue": "#0284C7",       # MI Royal Blue
     
     # Backwards-compatibility aliases
-    "bg_dark": "#F5F7FB",
-    "card_bg": "#FFFFFF",
-    "card_border": "#DCE4EF",
-    "text_muted": "#526581",
+    "bg_dark": "#070B14",
+    "card_bg": "#0E1626",
+    "card_border": "rgba(255, 255, 255, 0.08)",
+}
+
+# Franchise brand color mapping for badges & charts
+TEAM_COLORS = {
+    "Chennai Super Kings": "#FACC15",
+    "Mumbai Indians": "#0284C7",
+    "Kolkata Knight Riders": "#9333EA",
+    "Royal Challengers Bangalore": "#EF4444",
+    "Delhi Capitals": "#38BDF8",
+    "Punjab Kings": "#F43F5E",
+    "Rajasthan Royals": "#EC4899",
+    "Sunrisers Hyderabad": "#F97316",
+    "Gujarat Titans": "#14B8A6",
+    "Lucknow Super Giants": "#06B6D4",
+    "Rising Pune Supergiant": "#818CF8",
+    "Gujarat Lions": "#D97706",
+    "Kochi Tuskers Kerala": "#10B981",
+    "Pune Warriors": "#0D9488",
+    "Deccan Chargers": "#64748B",
+}
+
+TEAM_ABBRS = {
+    "Chennai Super Kings": "CSK",
+    "Mumbai Indians": "MI",
+    "Kolkata Knight Riders": "KKR",
+    "Royal Challengers Bangalore": "RCB",
+    "Delhi Capitals": "DC",
+    "Punjab Kings": "PBKS",
+    "Rajasthan Royals": "RR",
+    "Sunrisers Hyderabad": "SRH",
+    "Gujarat Titans": "GT",
+    "Lucknow Super Giants": "LSG",
+    "Rising Pune Supergiant": "RPS",
+    "Gujarat Lions": "GL",
+    "Kochi Tuskers Kerala": "KTK",
+    "Pune Warriors": "PW",
+    "Deccan Chargers": "DCH",
 }
 
 
 def get_plotly_layout_defaults():
     """
-    Returns Plotly layout defaults styled for high-contrast light theme dashboards.
+    Returns Plotly layout defaults styled for dark broadcast sports telemetry.
     """
     return dict(
-        font=dict(family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", color=THEME_COLORS["text_primary"], size=12),
+        font=dict(family="'Inter', -apple-system, BlinkMacSystemFont, sans-serif", color="#FFFFFF", size=12),
         paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="#FFFFFF",
-        margin=dict(l=45, r=30, t=55, b=45),
+        plot_bgcolor="#0E1626",
+        margin=dict(l=45, r=30, t=50, b=45),
         xaxis=dict(
-            gridcolor=THEME_COLORS["grid_color"],
-            linecolor=THEME_COLORS["border_color"],
-            zerolinecolor=THEME_COLORS["border_color"],
-            tickfont=dict(color=THEME_COLORS["text_secondary"], size=11),
-            title_font=dict(color=THEME_COLORS["text_primary"], size=12, family="Inter, sans-serif"),
+            gridcolor="rgba(255, 255, 255, 0.06)",
+            linecolor="rgba(255, 255, 255, 0.12)",
+            zerolinecolor="rgba(255, 255, 255, 0.12)",
+            tickfont=dict(color="#8E9CAE", size=11),
+            title_font=dict(color="#FFFFFF", size=12, family="'Space Grotesk', sans-serif"),
         ),
         yaxis=dict(
-            gridcolor=THEME_COLORS["grid_color"],
-            linecolor=THEME_COLORS["border_color"],
-            zerolinecolor=THEME_COLORS["border_color"],
-            tickfont=dict(color=THEME_COLORS["text_secondary"], size=11),
-            title_font=dict(color=THEME_COLORS["text_primary"], size=12, family="Inter, sans-serif"),
+            gridcolor="rgba(255, 255, 255, 0.06)",
+            linecolor="rgba(255, 255, 255, 0.12)",
+            zerolinecolor="rgba(255, 255, 255, 0.12)",
+            tickfont=dict(color="#8E9CAE", size=11),
+            title_font=dict(color="#FFFFFF", size=12, family="'Space Grotesk', sans-serif"),
         ),
         legend=dict(
-            bgcolor="rgba(255, 255, 255, 0.95)",
-            bordercolor=THEME_COLORS["border_color"],
+            bgcolor="rgba(14, 22, 38, 0.85)",
+            bordercolor="rgba(255, 255, 255, 0.1)",
             borderwidth=1,
-            font=dict(color=THEME_COLORS["text_primary"], size=11),
+            font=dict(color="#FFFFFF", size=11),
         ),
         hoverlabel=dict(
-            bgcolor=THEME_COLORS["sidebar_bg"],
-            bordercolor=THEME_COLORS["accent_orange"],
-            font=dict(color="#FFFFFF", family="Inter, sans-serif", size=12),
+            bgcolor="#070B14",
+            bordercolor="#FF6B00",
+            font=dict(color="#FFFFFF", family="'Space Grotesk', sans-serif", size=12),
         ),
     )
 
 
 def apply_theme():
-    """Injects comprehensive custom CSS for high contrast, clean typography, and polished layout."""
+    """Injects custom CSS for broadcast sports tech aesthetics, glowing indicators, and glassmorphism."""
+    bg_main = THEME_COLORS.get("bg_main", "#070B14")
+    bg_card = THEME_COLORS.get("bg_card", "#0E1626")
+    bg_card_inner = THEME_COLORS.get("bg_card_inner", "#131D31")
+    accent_orange = THEME_COLORS.get("accent_orange", "#FF6B00")
+    accent_cyan = THEME_COLORS.get("accent_cyan", "#00F0FF")
+    accent_green = THEME_COLORS.get("accent_green", "#00E676")
+    accent_red = THEME_COLORS.get("accent_red", "#FF3366")
+    accent_purple = THEME_COLORS.get("accent_purple", "#8B5CF6")
+    accent_yellow = THEME_COLORS.get("accent_yellow", "#FACC15")
+    accent_blue = THEME_COLORS.get("accent_blue", "#0284C7")
+    text_secondary = THEME_COLORS.get("text_secondary", "#8E9CAE")
+    border_color = THEME_COLORS.get("border_color", "rgba(255, 255, 255, 0.08)")
+
     css = f"""
     <style>
-    /* Google Font Inter */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    /* Google Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap');
 
-    /* Main application background and default text */
+    /* Global Root Variables */
+    :root {{
+        --bg-main: {bg_main};
+        --bg-card: {bg_card};
+        --bg-card-inner: {bg_card_inner};
+        --accent-orange: {accent_orange};
+        --accent-cyan: {accent_cyan};
+        --accent-green: {accent_green};
+        --accent-red: {accent_red};
+    }}
+
+    /* Main Application Container */
     .stApp {{
-        background-color: {THEME_COLORS['bg_main']};
-        color: {THEME_COLORS['text_primary']};
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: #070B14 radial-gradient(circle at 50% 0%, rgba(255, 107, 0, 0.07) 0%, rgba(0, 240, 255, 0.03) 35%, transparent 70%) no-repeat !important;
+        background-color: #070B14 !important;
+        color: #FFFFFF !important;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }}
 
-    /* Global Headings */
+    /* Hide standard sidebar and default streamlit headers */
+    [data-testid="stSidebar"] {{
+        display: none !important;
+    }}
+    header[data-testid="stHeader"] {{
+        background: transparent !important;
+        height: 0px !important;
+        visibility: hidden !important;
+    }}
+    .block-container {{
+        padding-top: 1rem !important;
+        padding-bottom: 3rem !important;
+        max-width: 1380px !important;
+    }}
+
+    /* Typography */
     h1, h2, h3, h4, h5, h6 {{
-        color: {THEME_COLORS['text_primary']} !important;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        font-weight: 700;
-        letter-spacing: -0.015em;
+        font-family: 'Outfit', sans-serif !important;
+        color: #FFFFFF !important;
+        font-weight: 800;
+        letter-spacing: -0.02em;
     }}
-    
+
     h1 {{
-        font-size: 1.85rem !important;
-        margin-top: 0.2rem !important;
-        margin-bottom: 0.4rem !important;
-        font-weight: 800 !important;
+        font-size: 2.3rem !important;
+        margin-top: 0.1rem !important;
+        margin-bottom: 0.35rem !important;
     }}
-    
+
     h2 {{
-        font-size: 1.35rem !important;
-        margin-top: 1.4rem !important;
-        margin-bottom: 0.75rem !important;
-    }}
-    
-    h3 {{
-        font-size: 1.15rem !important;
+        font-size: 1.45rem !important;
         margin-top: 1rem !important;
         margin-bottom: 0.5rem !important;
     }}
 
     p, span, div {{
-        color: {THEME_COLORS['text_primary']};
+        color: #FFFFFF;
     }}
 
-    .stCaption, small {{
-        color: {THEME_COLORS['text_secondary']} !important;
-        font-size: 0.85rem;
-    }}
-
-    /* Section Header Decorator */
-    .section-title {{
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        border-left: 4px solid {THEME_COLORS['accent_orange']};
-        padding-left: 10px;
-        margin-top: 1.5rem;
-        margin-bottom: 0.85rem;
-        color: {THEME_COLORS['text_primary']};
-        font-size: 1.25rem;
+    /* Neon Telemetry Subtitle */
+    .telemetry-subtitle {{
+        font-family: 'Space Grotesk', monospace;
+        color: {accent_cyan} !important;
+        font-size: 0.74rem;
+        letter-spacing: 0.18em;
         font-weight: 700;
-    }}
-
-    /* Metric Card Styling */
-    .metric-card {{
-        background-color: {THEME_COLORS['bg_card']};
-        border: 1px solid {THEME_COLORS['border_color']};
-        border-radius: 10px;
-        padding: 1.1rem 1.3rem;
-        box-shadow: 0 2px 8px rgba(23, 43, 77, 0.05);
-        margin-bottom: 1rem;
-        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-        position: relative;
-    }}
-    
-    .metric-card:hover {{
-        border-color: #B4CCE8;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(23, 43, 77, 0.09);
-    }}
-
-    /* Color-coded accent tops for KPI cards */
-    .metric-card.accent-orange {{ border-top: 3.5px solid {THEME_COLORS['accent_orange']}; }}
-    .metric-card.accent-blue {{ border-top: 3.5px solid {THEME_COLORS['accent_blue']}; }}
-    .metric-card.accent-green {{ border-top: 3.5px solid {THEME_COLORS['accent_green']}; }}
-    .metric-card.accent-purple {{ border-top: 3.5px solid {THEME_COLORS['accent_purple']}; }}
-    .metric-card.accent-red {{ border-top: 3.5px solid {THEME_COLORS['accent_red']}; }}
-
-    .metric-title {{
-        color: {THEME_COLORS['text_secondary']};
-        font-size: 0.78rem;
-        font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: 0.35rem;
-    }}
-    
-    .metric-value {{
-        color: {THEME_COLORS['text_primary']};
-        font-size: 2rem;
-        font-weight: 800;
-        line-height: 1.15;
-    }}
-    
-    .metric-value.accent, .metric-value.orange {{ color: {THEME_COLORS['accent_orange']}; }}
-    .metric-value.blue {{ color: {THEME_COLORS['accent_blue']}; }}
-    .metric-value.green {{ color: {THEME_COLORS['accent_green']}; }}
-    .metric-value.purple {{ color: {THEME_COLORS['accent_purple']}; }}
-    .metric-value.red {{ color: {THEME_COLORS['accent_red']}; }}
-    
-    .metric-subtitle {{
-        color: {THEME_COLORS['text_secondary']};
-        font-size: 0.82rem;
-        margin-top: 0.4rem;
-        font-weight: 500;
+        margin-bottom: 0.25rem;
+        display: inline-block;
     }}
 
-    /* Sidebar Customization - High-Contrast Dark Navy */
-    [data-testid="stSidebar"] {{
-        background-color: {THEME_COLORS['sidebar_bg']} !important;
-        border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
-    }}
-    
-    [data-testid="stSidebar"] * {{
-        color: #E2E8F0;
-    }}
-
-    [data-testid="stSidebarNav"] a {{
-        background-color: transparent !important;
-        color: #D3DFEE !important;
-        border-radius: 7px !important;
-        margin: 2px 8px !important;
-        padding: 8px 12px !important;
-        font-weight: 500 !important;
-        transition: all 0.2s ease !important;
-    }}
-    
-    [data-testid="stSidebarNav"] a:hover {{
-        background-color: rgba(255, 255, 255, 0.08) !important;
-        color: #FFFFFF !important;
-    }}
-
-    [data-testid="stSidebarNav"] a[aria-current="page"] {{
-        background-color: rgba(255, 107, 0, 0.16) !important;
-        color: {THEME_COLORS['accent_orange']} !important;
-        font-weight: 700 !important;
-        border-left: 4px solid {THEME_COLORS['accent_orange']} !important;
-    }}
-
-    [data-testid="stSidebarNav"] a[aria-current="page"] span {{
-        color: {THEME_COLORS['accent_orange']} !important;
-    }}
-
-    /* Info Banners */
-    .info-banner {{
-        background: #EDF4FD;
-        border-left: 4px solid {THEME_COLORS['accent_blue']};
-        border-top: 1px solid {THEME_COLORS['border_color']};
-        border-right: 1px solid {THEME_COLORS['border_color']};
-        border-bottom: 1px solid {THEME_COLORS['border_color']};
-        padding: 0.85rem 1.15rem;
-        border-radius: 6px;
+    /* Section Subtitle description */
+    .section-desc {{
+        color: {text_secondary};
+        font-size: 0.92rem;
         margin-bottom: 1.25rem;
-        color: {THEME_COLORS['text_primary']};
-        font-size: 0.88rem;
         line-height: 1.5;
     }}
 
-    .info-banner b, .info-banner strong {{
-        color: #0E2242;
+    /* Pulse Radar Indicator */
+    @keyframes pulse-radar {{
+        0% {{ transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.7); }}
+        70% {{ transform: scale(1); box-shadow: 0 0 0 6px rgba(0, 230, 118, 0); }}
+        100% {{ transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }}
     }}
 
-    .info-banner code {{
-        background-color: #D8E6F8;
-        color: #0E2242;
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-size: 0.82rem;
-        font-weight: 600;
+    .pulse-dot {{
+        width: 8px;
+        height: 8px;
+        background-color: {accent_green};
+        border-radius: 50%;
+        display: inline-block;
+        animation: pulse-radar 2s infinite;
+        margin-right: 6px;
     }}
 
-    /* Selectboxes, Text Inputs, and Dropdowns */
-    .stSelectbox label, .stSlider label, .stTextInput label {{
-        color: {THEME_COLORS['text_primary']} !important;
-        font-weight: 600 !important;
-        font-size: 0.88rem !important;
-    }}
-
-    div[data-baseweb="select"] > div {{
-        background-color: #FFFFFF !important;
-        border-color: {THEME_COLORS['border_color']} !important;
-        color: {THEME_COLORS['text_primary']} !important;
-        border-radius: 6px !important;
-    }}
-    
-    div[data-baseweb="select"] * {{
-        color: {THEME_COLORS['text_primary']} !important;
-    }}
-
-    div[data-baseweb="input"] input {{
-        background-color: #FFFFFF !important;
-        color: {THEME_COLORS['text_primary']} !important;
-        border: 1px solid {THEME_COLORS['border_color']} !important;
-        border-radius: 6px !important;
-    }}
-
-    /* Buttons & Download Action */
-    .stDownloadButton button {{
-        background-color: {THEME_COLORS['accent_orange']} !important;
-        color: #FFFFFF !important;
-        border: none !important;
-        border-radius: 6px !important;
-        font-weight: 600 !important;
-        padding: 0.5rem 1.25rem !important;
-        box-shadow: 0 2px 8px rgba(255, 107, 0, 0.28) !important;
+    /* Top Navigation Button Overrides */
+    div.stButton > button {{
+        background: rgba(14, 22, 38, 0.85) !important;
+        border: 1px solid rgba(255, 255, 255, 0.09) !important;
+        color: #CBD5E1 !important;
+        font-family: 'Outfit', sans-serif !important;
+        font-weight: 700 !important;
+        font-size: 0.82rem !important;
+        border-radius: 8px !important;
+        padding: 6px 12px !important;
+        white-space: nowrap !important;
         transition: all 0.2s ease !important;
     }}
-    
-    .stDownloadButton button:hover {{
-        background-color: #E65A00 !important;
-        box-shadow: 0 4px 12px rgba(255, 107, 0, 0.4) !important;
+
+    div.stButton > button:hover {{
+        background: rgba(255, 255, 255, 0.12) !important;
+        color: #FFFFFF !important;
+        border-color: rgba(255, 107, 0, 0.5) !important;
         transform: translateY(-1px) !important;
     }}
 
-    /* Tables & DataFrames */
-    .stDataFrame {{
-        border: 1px solid {THEME_COLORS['border_color']} !important;
+    /* Force dark background on any pre/code blocks to prevent white cards */
+    pre, code, div[data-testid="stCodeBlock"] {{
+        background: #0B111E !important;
+        color: #00F0FF !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
         border-radius: 8px !important;
-        background-color: #FFFFFF !important;
     }}
 
-    /* Plotly Chart Containers */
+    /* KPI Metric Cards */
+    .metric-card {{
+        background-color: {bg_card};
+        border: 1px solid {border_color};
+        border-radius: 12px;
+        padding: 1.1rem 1.3rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        margin-bottom: 1rem;
+        transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        position: relative;
+    }}
+
+    .metric-card:hover {{
+        border-color: rgba(0, 240, 255, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+    }}
+
+    .metric-title {{
+        color: {text_secondary};
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 0.35rem;
+    }}
+
+    .metric-value {{
+        color: #FFFFFF;
+        font-family: 'Outfit', sans-serif;
+        font-size: 2.1rem;
+        font-weight: 900;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }}
+
+    .metric-value.orange {{ color: {accent_orange}; }}
+    .metric-value.cyan {{ color: {accent_cyan}; }}
+    .metric-value.green {{ color: {accent_green}; }}
+    .metric-value.purple {{ color: {accent_purple}; }}
+
+    .metric-delta-row {{
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 0.45rem;
+    }}
+
+    .metric-delta {{
+        font-family: 'Space Grotesk', monospace;
+        font-size: 0.74rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+    }}
+
+    .metric-delta.up {{
+        background: rgba(0, 230, 118, 0.12);
+        color: {accent_green};
+        border: 1px solid rgba(0, 230, 118, 0.25);
+    }}
+
+    .metric-delta.down {{
+        background: rgba(255, 51, 102, 0.12);
+        color: {accent_red};
+        border: 1px solid rgba(255, 51, 102, 0.25);
+    }}
+
+    .metric-subtitle {{
+        color: {text_secondary};
+        font-size: 0.78rem;
+    }}
+
+    /* Mac OS Window Card Header */
+    .window-card {{
+        background: {bg_card};
+        border: 1px solid {border_color};
+        border-radius: 14px;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+    }}
+
+    .window-header {{
+        background: #0B111E;
+        border-bottom: 1px solid {border_color};
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }}
+
+    .window-dots {{
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }}
+
+    .dot {{
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+    }}
+
+    .dot-red {{ background-color: #FF5F56; }}
+    .dot-yellow {{ background-color: #FFBD2E; }}
+    .dot-green {{ background-color: #27C93F; }}
+
+    .window-tabs {{
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-left: 20px;
+    }}
+
+    .window-tab {{
+        font-family: 'Outfit', sans-serif;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: {text_secondary};
+        padding-bottom: 4px;
+    }}
+
+    .window-tab.active {{
+        color: #FFFFFF;
+        border-bottom: 2px solid {accent_orange};
+    }}
+
+    .window-tag {{
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.72rem;
+        color: {text_secondary};
+        letter-spacing: 0.05em;
+    }}
+
+    /* Selectboxes and Dropdowns Dark Styling */
+    .stSelectbox label, .stSlider label, .stTextInput label {{
+        color: #94A3B8 !important;
+        font-family: 'Space Grotesk', sans-serif !important;
+        font-size: 0.76rem !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.06em !important;
+    }}
+
+    div[data-baseweb="select"] > div {{
+        background-color: #0E1626 !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 8px !important;
+        color: #FFFFFF !important;
+    }}
+
+    div[data-baseweb="select"] * {{
+        color: #FFFFFF !important;
+    }}
+
+    /* BaseWeb Dropdown Popover & Menu Items (Fixes White Box Issue) */
+    div[data-baseweb="popover"],
+    div[data-baseweb="popover"] > div,
+    ul[data-baseweb="menu"],
+    ul[role="listbox"] {{
+        background-color: #0E1626 !important;
+        background: #0E1626 !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        border-radius: 10px !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.75) !important;
+    }}
+
+    li[role="option"],
+    li[data-baseweb="menu-item"],
+    div[role="option"] {{
+        background-color: #0E1626 !important;
+        background: #0E1626 !important;
+        color: #FFFFFF !important;
+        font-family: 'Inter', -apple-system, sans-serif !important;
+        font-size: 0.88rem !important;
+        padding: 9px 14px !important;
+        transition: background 0.15s ease, color 0.15s ease !important;
+    }}
+
+    li[role="option"] *,
+    li[data-baseweb="menu-item"] *,
+    div[role="option"] * {{
+        color: #FFFFFF !important;
+    }}
+
+    li[role="option"]:hover,
+    li[data-baseweb="menu-item"]:hover,
+    div[role="option"]:hover {{
+        background-color: #1A2744 !important;
+        background: #1A2744 !important;
+        color: {accent_orange} !important;
+    }}
+
+    li[role="option"]:hover *,
+    li[data-baseweb="menu-item"]:hover *,
+    div[role="option"]:hover * {{
+        color: {accent_orange} !important;
+    }}
+
+    li[role="option"][aria-selected="true"],
+    li[data-baseweb="menu-item"][aria-selected="true"],
+    div[role="option"][aria-selected="true"] {{
+        background-color: rgba(255, 107, 0, 0.18) !important;
+        background: rgba(255, 107, 0, 0.18) !important;
+        color: {accent_orange} !important;
+        font-weight: 700 !important;
+    }}
+
+    li[role="option"][aria-selected="true"] *,
+    li[data-baseweb="menu-item"][aria-selected="true"] *,
+    div[role="option"][aria-selected="true"] * {{
+        color: {accent_orange} !important;
+    }}
+
+    div[data-baseweb="input"] input {{
+        background-color: #0E1626 !important;
+        color: #FFFFFF !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 8px !important;
+    }}
+
+    /* Plotly Containers */
     [data-testid="stPlotlyChart"] {{
-        background-color: #FFFFFF;
-        border: 1px solid {THEME_COLORS['border_color']};
-        border-radius: 10px;
-        padding: 10px 10px 4px 10px;
-        box-shadow: 0 2px 8px rgba(23, 43, 77, 0.04);
+        background-color: {bg_card};
+        border: 1px solid {border_color};
+        border-radius: 12px;
+        padding: 12px 10px 4px 10px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
         margin-bottom: 1rem;
     }}
 
-    /* Dividers */
+    /* DataFrames in Dark Mode */
+    .stDataFrame {{
+        background-color: {bg_card} !important;
+        border: 1px solid {border_color} !important;
+        border-radius: 10px !important;
+    }}
+
+    /* Section Divider */
     hr {{
-        border-color: {THEME_COLORS['border_color']} !important;
-        margin: 1.4rem 0 !important;
-        opacity: 0.8;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+        margin: 1.5rem 0 !important;
     }}
     </style>
     """
