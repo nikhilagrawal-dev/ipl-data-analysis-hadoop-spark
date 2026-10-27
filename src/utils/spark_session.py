@@ -21,11 +21,16 @@ def get_spark_session(
     - HDFS_NAMENODE_HOST: e.g. 'namenode' (docker internal) or 'localhost' (host machine)
     - HDFS_NAMENODE_PORT: default '9000'
     """
+    # Auto-detect whether running inside Docker container or host machine
+    is_docker = os.path.exists("/.dockerenv")
+
     if master is None:
-        master = os.getenv("SPARK_MASTER", "spark://spark-master:7077")
+        default_master = "spark://spark-master:7077" if is_docker else "local[*]"
+        master = os.getenv("SPARK_MASTER", default_master)
 
     if hdfs_host is None:
-        hdfs_host = os.getenv("HDFS_NAMENODE_HOST", "namenode")
+        default_host = "namenode" if is_docker else "localhost"
+        hdfs_host = os.getenv("HDFS_NAMENODE_HOST", default_host)
 
     if hdfs_port is None:
         hdfs_port = os.getenv("HDFS_NAMENODE_PORT", "9000")

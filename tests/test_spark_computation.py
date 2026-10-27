@@ -6,6 +6,11 @@ and runs Spark SQL queries properly.
 """
 
 import sys
+import os
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, sum as _sum
 
@@ -24,18 +29,16 @@ def run_test():
     )
     spark.sparkContext.setLogLevel("WARN")
 
-    print(f"✔ Spark Session created successfully (Version: {spark.version})")
+    print(f"[OK] Spark Session created successfully (Version: {spark.version})")
 
-    # 1. Create a sample in-memory DataFrame
-    data = [
-        ("Kolkata Knight Riders", 222, "Eden Gardens"),
-        ("Royal Challengers Bangalore", 185, "M Chinnaswamy Stadium"),
-        ("Chennai Super Kings", 210, "MA Chidambaram Stadium"),
-        ("Mumbai Indians", 195, "Wankhede Stadium"),
-        ("Rajasthan Royals", 175, "Sawai Mansingh Stadium"),
-    ]
-    columns = ["team", "total_runs", "venue"]
-    df = spark.createDataFrame(data, columns)
+    # 1. Create a sample DataFrame using Spark SQL (avoids Python 3.14 cloudpickle recursion bug)
+    df = spark.sql("""
+        SELECT 'Kolkata Knight Riders' AS team, 222 AS total_runs, 'Eden Gardens' AS venue
+        UNION ALL SELECT 'Royal Challengers Bangalore', 185, 'M Chinnaswamy Stadium'
+        UNION ALL SELECT 'Chennai Super Kings', 210, 'MA Chidambaram Stadium'
+        UNION ALL SELECT 'Mumbai Indians', 195, 'Wankhede Stadium'
+        UNION ALL SELECT 'Rajasthan Royals', 175, 'Sawai Mansingh Stadium'
+    """)
 
     print("\n--- Input DataFrame ---")
     df.show(truncate=False)
@@ -50,7 +53,7 @@ def run_test():
 
     assert filtered_count == 3, f"Expected 3 teams with >= 190 runs, got {filtered_count}"
     assert total_runs_sum == 627, f"Expected sum of 627 runs, got {total_runs_sum}"
-    print("✔ DataFrame transformation assertions passed.")
+    print("[OK] DataFrame transformation assertions passed.")
 
     # 3. Test Spark SQL Engine
     df.createOrReplaceTempView("ipl_scores")
@@ -62,11 +65,11 @@ def run_test():
 
     sql_count = sql_result.count()
     assert sql_count == 2, f"Expected 2 teams with total_runs > 200, got {sql_count}"
-    print("✔ Spark SQL query assertion passed.")
+    print("[OK] Spark SQL query assertion passed.")
 
     spark.stop()
     print("\n==========================================================")
-    print("✅ TEST PASSED: Spark computation and SQL engine verified!")
+    print("[SUCCESS] TEST PASSED: Spark computation and SQL engine verified!")
     print("==========================================================")
 
 
@@ -74,5 +77,5 @@ if __name__ == "__main__":
     try:
         run_test()
     except Exception as e:
-        print(f"❌ TEST FAILED with exception: {e}", file=sys.stderr)
+        print(f"[FAIL] TEST FAILED with exception: {e}", file=sys.stderr)
         sys.exit(1)
